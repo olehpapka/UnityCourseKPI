@@ -10,9 +10,11 @@ public class InputReader : MonoBehaviour
     private float _direction;
     private void Update()
     {
-        if (Input.GetButtonDown("Jump"))
-            _playerMovement.Jump();
+        
         _direction = Input.GetAxisRaw("Horizontal");
+
+        if (Input.GetButtonDown("Jump") && _playerMovement.IsGrounded())
+            _playerMovement.Jump();
     }
 
     private void FixedUpdate()

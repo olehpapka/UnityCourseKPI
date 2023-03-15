@@ -10,12 +10,24 @@ namespace Player
 
     public class PlayerMovement : MonoBehaviour
     {
+        [Header("HorizontalMovement")]
         [SerializeField] private float _horizontalSpeed;
         [SerializeField] private bool _faceRight;
+
+        [Header("Jump")]
         [SerializeField] private float _jumpHeight;
 
+        [SerializeField] private LayerMask _jumpableGround;
         private Rigidbody2D _rigidbody;
+        private BoxCollider2D _collider;
         
+        
+
+        private void Start()
+        {
+            _rigidbody = GetComponent<Rigidbody2D>();
+            _collider= GetComponent<BoxCollider2D>();
+        }
 
         public void MoveHorizontally(float direction)
         {
@@ -32,9 +44,10 @@ namespace Player
             _rigidbody.velocity = velocity;
         }
 
-        private void Start()
+        public bool IsGrounded()
         {
-            _rigidbody = GetComponent<Rigidbody2D>();
+            return Physics2D.BoxCast(_collider.bounds.center, _collider.bounds.size, 0f,
+                Vector2.down, 0.1f, _jumpableGround);
         }
 
         private void SetDirection(float direction)
@@ -49,6 +62,8 @@ namespace Player
             transform.Rotate(0, 180, 0);
             _faceRight = !_faceRight;
         }
+
+        
     }
 }
 
