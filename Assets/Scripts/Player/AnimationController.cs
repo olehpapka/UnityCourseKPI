@@ -28,7 +28,7 @@ public class AnimationController : MonoBehaviour
     private void Start()
     {
         _animator = GetComponent<Animator>();
-        _rigidbody= GetComponent<Rigidbody2D>();
+        _rigidbody = GetComponent<Rigidbody2D>();
     }
 
     
