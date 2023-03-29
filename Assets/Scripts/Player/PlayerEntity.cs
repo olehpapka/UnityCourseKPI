@@ -6,21 +6,25 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 
-public class PlayerEntity : MonoBehaviour
+public class PlayerEntity : MonoBehaviour, IDisposable
 {
-    [Header("HorizontalMovement")]
-    [SerializeField] private float _horizontalSpeed;
-    [SerializeField] private bool _faceRight;
 
-    [Header("Jump")]
-    [SerializeField] private float _jumpHeight;
+    [SerializeField] private DirectionalMovementData _directionalMovementData;
+    [SerializeField] private JumpData _jumpData;
 
     [SerializeField] private LayerMask _jumpableGround;
+
+    [SerializeField] private GameObject _spawnPoint;
+
     private Rigidbody2D _rigidbody;
     private BoxCollider2D _collider;
 
     private AnimationController _animationController;
-    private Vector2 _movement;
+
+
+    private DirectionalMover _directionalMover;
+    private Jumper _jumper;
+    private PlayerLife _playerLife;
 
 
     private void Start()
@@ -28,31 +32,29 @@ public class PlayerEntity : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<BoxCollider2D>();
         _animationController = GetComponent<AnimationController>();
+        _directionalMover = new DirectionalMover(_rigidbody, _directionalMovementData);
+        _jumper = new Jumper(_rigidbody, _jumpData);
+        _playerLife = GetComponent<PlayerLife>();
+        _playerLife.OnPlayerDeath += OnPlayerDeath;
     }
-        
-    private void Update() 
+
+    private void Update()
     {
-        _animationController.UpdatePlayerState(_movement.x);
+        _animationController.UpdatePlayerState(_directionalMover.Direction);
     }
-        
 
 
-    public void MoveHorizontally(float direction)
-    {
-        _movement.x = direction;
-        SetDirection(direction);
-        Vector2 velocity = _rigidbody.velocity;
-        velocity.x = direction * _horizontalSpeed;
-        _rigidbody.velocity = velocity;
-    }
+
+    public void MoveHorizontally(float direction) => _directionalMover.MoveHorizontally(direction);
+
+
+
 
     public void Jump()
     {
         if (!IsGrounded())
             return;
-        Vector2 velocity = _rigidbody.velocity;
-        velocity.y = _jumpHeight;
-        _rigidbody.velocity = velocity;
+        _jumper.Jump();
     }
 
     public bool IsGrounded()
@@ -61,19 +63,15 @@ public class PlayerEntity : MonoBehaviour
             Vector2.down, 0.1f, _jumpableGround);
     }
 
-    private void SetDirection(float direction)
+    public void OnPlayerDeath()
     {
-        if ((_faceRight && direction < 0) ||
-            (!_faceRight && direction > 0))
-            Flip();
+        transform.position = _spawnPoint.transform.position;
     }
 
-    private void Flip()
+    public void Dispose()
     {
-        transform.Rotate(0, 180, 0);
-        _faceRight = !_faceRight;
+        _playerLife.OnPlayerDeath -= OnPlayerDeath;
     }
 
-        
 }
 
